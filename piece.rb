@@ -1,3 +1,5 @@
+load './exceptions.rb'
+
 class Piece
   attr_reader :color, :diffs
   
@@ -16,8 +18,40 @@ class Piece
     @color == :red ? 'Red' : 'Blk'
   end
   
+  def dup board
+    self.class.new(board, @color, @pos)
+  end
+  
   def inspect
     "#{self.class},#{@color} #{@pos} @king = #{@king}"
+  end
+  
+  def valid_move_seq?(pos_list)
+    begin
+      temp_board = @board.dup
+      temp_board[@pos].perform_moves!(pos_list)
+      true
+    rescue InvalidMoveError
+      false
+    end
+  end
+  
+  def perform_moves(pos_list)
+    if valid_move_seq?(pos_list)
+      perform_moves!(pos_list)
+    else
+      raise InvalidMoveError
+    end
+  end
+  
+  def perform_moves!(pos_list)
+    if pos_list.length == 1 && perform_step(pos_list[0])
+      return
+    end 
+    pos_list.each do |pos|
+      next if perform_jump(pos)
+      raise InvalidMoveError
+    end
   end
   
   def perform_step(pos)
@@ -41,8 +75,6 @@ class Piece
   end
   
   def legal_steps
-    p self
-    p legal_diffs
     legal_diffs[:step].map { |diff| relative_pos(diff) }
   end
   
@@ -75,8 +107,6 @@ class Piece
   end
   
   def relative_pos(diff)
-    p @diffs
-    p diff
     [diff.first + @pos.first, diff.last + @pos.last]
   end
   

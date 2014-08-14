@@ -4,8 +4,9 @@ class Board
   
   attr_accessor :matrix
   
-  def initialize
+  def initialize start = true
     @rows = Array.new(8) {Array.new(8)}
+    set_pieces if start
   end
   
   def [] pos
@@ -14,6 +15,16 @@ class Board
   
   def []= pos, val
     @rows[pos[0]][pos[1]] = val
+  end
+  
+  def dup
+    new_board = Board.new false
+    @rows.each_with_index do |row, x|
+      row.each_with_index do |piece, y|
+        new_board[[x, y]] = piece.dup(new_board) if piece
+      end
+    end
+    new_board
   end
   
   def on_board?(pos)
@@ -48,14 +59,20 @@ class Board
   
   def set_pieces
     pieces = {
-      black: [[0,0], [0,2], [0,4], [0,6], 
-      [1,1], [1,3], [1,5], [1,7],
-      [2,0], [2,2], [2,4], [2,6]],
-      
-      red: [[5,1], [5,3], [5,5], [5,7],
-        [6,0], [6,2], [6,4], [6,6], 
-        [7,1], [7,3], [7,5], [7,7]] 
+      red: [[0,1], [0,3], [0,5], [0,7],
+      [1,0], [1,2], [1,4], [1,6],
+      [2,1], [2,3], [2,5], [2,7]],
+
+      black: [[5,0], [5,2], [5,4], [5,6],
+        [6,1], [6,3], [6,5], [6,7],
+        [7,0], [7,2], [7,4], [7,6]]
     }
+    
+    # pieces = {
+    #   black: [[2,4]],
+    #
+    #   red: [[3,3], [5,1]]
+    # }
     pieces.each do |color, positions|
       positions.each {|pos| place_piece(color, pos)}
     end
@@ -68,5 +85,5 @@ class Board
 end
 
 $b = Board.new
-$b.set_pieces
+$b.display
 
